@@ -5,6 +5,15 @@ import re
 import os
 
 
+def create_users_table(cursor):
+    cursor.execute("""
+        CREATE TABLE users (
+            id INTEGER PRIMARY KEY,
+            username TEXT,
+            password TEXT
+        )
+    """)
+
 def new_user(username, password):
     # Check if the "users" directory exists, and create it if it does not
     if not os.path.exists("users"):
@@ -34,7 +43,26 @@ def new_user(username, password):
         conn.commit()
         conn.close()
 
-    # Add the new username and password to the "user_database" database
+    # Check if the "user_database.db" file exists, and create it if it does not
+    if not os.path.exists("user_database.db"):
+        conn = sqlite3.connect("user_database.db")
+        cursor = conn.cursor()
+        create_users_table(cursor)
+        conn.commit()
+        conn.close()
+
+    # Check if the "users" table exists, and create it if it does not
+    conn = sqlite3.connect("user_database.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT name FROM sqlite_master WHERE type='table' AND name='users'
+    """)
+    if cursor.fetchone() is None:
+        create_users_table(cursor)
+        conn.commit()
+    conn.close()
+
+    # Add the new username and password to the "users" table
     conn = sqlite3.connect("user_database.db")
     cursor = conn.cursor()
     cursor.execute("""
@@ -44,6 +72,7 @@ def new_user(username, password):
     conn.close()
 
     print(f"New user {username} created with password {password}.")
+
 
 def check_login(username, password):
     # Check if the username and password match in the "user_database" database
