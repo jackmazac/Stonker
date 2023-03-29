@@ -9,7 +9,6 @@ The game offers a unique experience by masking the stock and years during the si
 - Interactive tutorial introducing stock market basics
 - Simulated stock market game with masked stock and years
 - Engaging gameplay with a focus on skill development
-- Desktop application available for download
 
 ## Installation
 
@@ -17,21 +16,24 @@ To install and run Stonkers, follow these steps:
 
 1. Install Python 3.6 or later from https://www.python.org/downloads/
 2. Install PyGame by running the following command in your terminal or command prompt:
-'''
+```
 pip install pygame
-'''
+
+```
 3. Clone or download the Stonkers repository from GitHub:
-'''
+```
 git clone https://github.com/yourusername/stonkers.git
-'''
+
+```
 4. Navigate to the `stonkers` directory:
-'''
+```
 cd stonkers
-'''
+
+```
 5. Run the game:
-'''
+```
 python main.py
-'''
+```
 
 ## How to Play
 
@@ -39,17 +41,6 @@ python main.py
 2. After completing the tutorial, enter the simulated stock market game.
 3. Use your technical skills and knowledge to make decisions on buying, selling, or holding stocks.
 4. Complete the game to reveal the masked stock and compare your performance to the actual stock's historical performance.
-
-## Contributing
-
-Stonkers welcomes contributions from the community. If you'd like to contribute, please follow these steps:
-
-1. Fork the repository
-2. Create a new branch with a descriptive name
-3. Make your changes in the new branch
-4. Commit your changes and write a clear commit message
-5. Push your changes to your fork
-6. Create a pull request describing the changes you made
 
 ## License
 
