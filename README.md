@@ -18,17 +18,14 @@ To install and run Stonkers, follow these steps:
 2. Install PyGame by running the following command in your terminal or command prompt:
 ```
 pip install pygame
-
 ```
 3. Clone or download the Stonkers repository from GitHub:
 ```
 git clone https://github.com/yourusername/stonkers.git
-
 ```
 4. Navigate to the `stonkers` directory:
 ```
 cd stonkers
-
 ```
 5. Run the game:
 ```
