@@ -10,6 +10,33 @@ The game offers a unique experience by masking the stock and years during the si
 - Simulated stock market game with masked stock and years
 - Engaging gameplay with a focus on skill development
 
+## Repo Structure
+```
+stonkers/
+│
+├── assets/
+│   ├── fonts/
+│   ├── images/
+│   │   ├── background/
+│   │   ├── buttons/
+│   │   ├── characters/
+│   │   └── icons/
+│   └── sounds/
+│
+├── src/
+│   ├── main_menu.py
+│   ├── tutorial.py
+│   ├── simulation.py
+│   └── end_screen.py
+│
+├── utils/ 
+│   └── files that handle stock data, and hold class methods (User, Stock, etc.)
+│
+├── main.py
+├── README.md
+└── LICENSE
+```
+
 ## Installation
 
 To install and run Stonkers, follow these steps:
