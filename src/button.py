@@ -10,6 +10,9 @@ class Button(pygame.sprite.Sprite):
         self.hover = False
         self.height=height
         self.width=width
+        self.colorIdle=(10,10,10)
+        self.colorIdle=(10,10,10)
+
 
     def __init__(self,screen,width,height,colorIdle,colorPressed,pos):
         #super(Button, self).__init__(*groups)            
@@ -55,3 +58,4 @@ class Button(pygame.sprite.Sprite):
             #return self.difficulty 
 
 button1=button(screen1,200,100,(0,0))
+    
