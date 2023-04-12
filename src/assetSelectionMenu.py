@@ -9,6 +9,9 @@ class assetSelectionMenu():
     
     
 
-    def draw(self):
-        self.buttonTSLA.draw()
-        self.buttonSPX.draw()
+    def draw(self,isActive):
+        if isActive:
+            self.buttonTSLA.draw()
+            self.buttonSPX.draw()
+        else:
+            isActive=False

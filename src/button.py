@@ -52,7 +52,9 @@ class button(pygame.sprite.Sprite):
     def MouseClick(self):
         if self.rect.collidepoint(pygame.mouse.get_pos()):
             self.game.choose_sound.play()
+            #if clicked
+            
             #return self.difficulty 
 
-
+    
     
