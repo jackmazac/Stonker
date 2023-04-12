@@ -54,12 +54,5 @@ class button(pygame.sprite.Sprite):
             self.game.choose_sound.play()
             #return self.difficulty 
 
-button1=button(screen1,200,100,'Red','Blue',(0,0))
-while True:
-    button1.draw()
-    for event in pygame.event.get():
-        if event.type==pygame.QUIT:
-            pygame.quit()
-            exit()
-    pygame.display.update()
+
     
