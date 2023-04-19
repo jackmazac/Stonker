@@ -1,7 +1,6 @@
 import stonker
 import pygame
 import sys
-from loginmenu import login_menu
 from newusermenu import new_user_menu
 
 def main_menu():
@@ -58,6 +57,7 @@ def main_menu():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # Check for login button click
                 if login_button.collidepoint(event.pos):
+                    from loginmenu import login_menu
                     pygame.display.quit()
                     login_menu()
 

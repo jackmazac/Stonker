@@ -32,7 +32,7 @@ def draw_help_text(screen, font):
     screen.blit(help_text_surface, help_text_rect)
 
 
-def handle_input_events(event, ticker_input_text, username):
+def handle_input_events(event, ticker_input_text):
     output_text = ""
     if event.type == pygame.KEYDOWN:
         if event.key == pygame.K_BACKSPACE:
@@ -45,17 +45,12 @@ def handle_input_events(event, ticker_input_text, username):
             else:
                 # Check the stock price, current balance, and max buy amount
                 stock_price = check_stock_price(ticker_input_text)
-                balance = current_balance(username)
-                max_buy_amount = max_buy(username, ticker_input_text)
-                # Format the output text with the stock price, balance, and max buy amount
+                # Format the output text with the stock price
                 output_text = f"Stock price for {ticker_input_text}: ${stock_price:.2f}\n"
-                output_text += f"Your current balance: ${balance:.2f}\n"
-                output_text += f"Maximum buy amount for {ticker_input_text}: {max_buy_amount}\n"
         else:
             # Add the pressed key to the ticker input text
             ticker_input_text += event.unicode
     return ticker_input_text, output_text
-
 
 
 def handle_mouse_events(event, ticker_input_text, username, shares_amount):
@@ -73,7 +68,6 @@ def handle_mouse_events(event, ticker_input_text, username, shares_amount):
             # Update output text with sell message
             output_text = "Sell functionality not yet implemented"
     return output_text
-
 
 
 def draw_buy_menu(screen, font, ticker_input_rect, ticker_input_text, buy_button_rect, sell_button_rect, output_text, help_text):
@@ -123,7 +117,7 @@ def buy_menu(username):
     pygame.display.set_caption("Stock Market Menu")
 
     # Set up the font
-    font = pygame.font.Font("Roboto-Regular.ttf", 28)
+    font = pygame.font.Font("fonts/Roboto-Regular.ttf", 28)
 
     # Set up the stock ticker input box
     ticker_input_rect = pygame.Rect(200, 200, 300, 50)
@@ -145,7 +139,7 @@ def buy_menu(username):
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
-                ticker_input_text = handle_input_events(event, ticker_input_text)
+                ticker_input_text, output_text = handle_input_events(event, ticker_input_text, username)
                 if event.key == pygame.K_h:
                     output_text = "Enter a ticker symbol to get the stock price, current balance, and maximum buy amount.\n"
                     output_text += "Click the 'Buy' button to buy stocks, or the 'Sell' button to sell stocks (not yet implemented).\n"
@@ -155,7 +149,6 @@ def buy_menu(username):
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 output_text = handle_mouse_events(event, ticker_input_text, username, shares_amount, buy_button_rect, sell_button_rect)
 
-
         # Clear the screen
         screen.fill((38, 70, 83))
 
@@ -164,3 +157,5 @@ def buy_menu(username):
 
         # Update the screen
         pygame.display.update()
+
+

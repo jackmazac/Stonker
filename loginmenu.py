@@ -42,7 +42,7 @@ def login_menu():
     password_str = ''
 
     # Set up animation variables
-    login_button_speed = 3
+    login_button_speed = 1
     back_button_rotation = 0
 
     # Game loop
@@ -58,12 +58,16 @@ def login_menu():
                     # Check if the user clicked on the login button
                     if login_button.collidepoint(event.pos):
                         # Call the login function and pass in the text from the boxes
-                        check_login(username_str, password_str)
+                        if check_login(username_str, password_str):
+                            from gamemenu import game_menu
+                            pygame.display.quit()
+                            game_menu(username_str)
                     # Check if the user clicked on the back button
                     elif back_button.collidepoint(event.pos):
                         # Go back to the main menu screen
-                        pygame.quit()
-                        return None
+                        from mainmenu import main_menu
+                        pygame.display.quit()
+                        main_menu()
             elif event.type == pygame.KEYDOWN:
                 if username_box.collidepoint(pygame.mouse.get_pos()):
                     if event.unicode.isalnum() and len(username_str) < 12:
@@ -132,18 +136,15 @@ def login_menu():
             pygame.draw.rect(win, button_hover_color, back_button, 3)
 
         # Update button animations
-        if login_button.x >= 300:
-            login_button_speed = -3
-        elif login_button.x <= 200:
-            login_button_speed = 3
-        login_button.x += login_button_speed
+        # if login_button.x >= 300:
+        #     login_button_speed = -1
+        # elif login_button.x <= 200:
+        #     login_button_speed = 1
+        # login_button.x += login_button_speed
 
-        back_button_rotation += 5
-        if back_button_rotation >= 360:
-            back_button_rotation = 0
+        # back_button_rotation += 1
+        # if back_button_rotation >= 360:
+        #     back_button_rotation = 0
 
         # Update display
         pygame.display.update()
-
-    # Quit Pygame
-    pygame.quit()

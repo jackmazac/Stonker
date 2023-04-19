@@ -383,7 +383,7 @@ def check_inventory(username):
     cursor.execute("SELECT amount FROM balance")
     balance = cursor.fetchone()[0]
 
-    cursor.execute("SELECT * FROM stocks")
+    cursor.execute("SELECT symbol, shares, price, date FROM stocks")
     stocks = cursor.fetchall()
 
     total_value = balance
