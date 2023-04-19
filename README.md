@@ -1,10 +1,10 @@
-###Stonker Game
+###Stonker Game###
 Stonker is a stock trading simulation game created using Python and Pygame.
 
-##How to Play
+##How to Play##
 To play the game, run the play.py file in a Python environment.
 
-##Files
+##Files##
 The following files are included in the game:
 
 buymenu.py: Contains the functions for the buy menu.
@@ -18,5 +18,5 @@ tutorialsmenu.py: Contains the functions for the tutorials menu.
 Known Issues
 Currently, the buy menu, sell menu, and tutorials menu are not functioning properly.
 
-##Contributors
+##Contributors##
 This project was primarily created by Jack, with contributions from the rest of the team.
