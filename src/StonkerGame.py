@@ -1,3 +1,4 @@
+
 import pygame
 import assetSelectionMenu
 from sys import exit
@@ -7,6 +8,7 @@ MainDisplay=pygame.display.set_mode((1250,675))
 MainDisplay.fill('Gray')
 AssetSelectionMenu=assetSelectionMenu.assetSelectionMenu(MainDisplay)
 AssetSelectionMenuIsActive=True
+AssetGraphIsActive=False
 while True:
     for event in pygame.event.get():
         if event.type==pygame.QUIT:
