@@ -3,6 +3,7 @@ import yfinance as yf
 from datetime import datetime
 import re
 import os
+import random
 
 
 def create_users_table(cursor):
@@ -10,9 +11,11 @@ def create_users_table(cursor):
         CREATE TABLE users (
             id INTEGER PRIMARY KEY,
             username TEXT,
-            password TEXT
+            password TEXT,
+            last_tutorial_read INTEGER DEFAULT 1
         )
     """)
+
 
 def new_user(username, password):
     # Check if the "users" directory exists, and create it if it does not
@@ -91,113 +94,10 @@ def check_login(username, password):
         print(f"Login successful for user {username}.")
         return True
 
-def check_stock_price(ticker):
-    stock_data = yf.Ticker(ticker)
-    current_price = stock_data.info["regularMarketPrice"]
-    return current_price
-
-def current_balance(username):
-    # Get the user's balance from their database
-    user_db_path = os.path.join("users", f"{username}.db")
-    conn = sqlite3.connect(user_db_path)
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT amount FROM balance
-    """)
-    result = cursor.fetchone()
-    conn.close()
-
-    if result is None:
-        print(f"User {username} not found.")
-        return None
-    else:
-        balance = result[0]
-        print(f"Current balance for {username}: ${balance:.2f}")
-        return balance
-
-def check_inventory(username):
-    # Get the user's stock inventory from their database
-    user_db_path = os.path.join("users", f"{username}.db")
-    conn = sqlite3.connect(user_db_path)
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT symbol, shares, price, date FROM stocks
-    """)
-    results = cursor.fetchall()
-    conn.close()
-
-    if len(results) == 0:
-        print(f"No stocks found in inventory for user {username}.")
-        return []
-    else:
-        inventory = []
-        for row in results:
-            stock = {
-                "symbol": row[0],
-                "shares": row[1],
-                "price": row[2],
-                "date": row[3]
-            }
-            inventory.append(stock)
-        print(f"Current inventory for user {username}:")
-        for stock in inventory:
-            print(f"{stock['symbol']}: {stock['shares']} shares @ ${stock['price']} ({stock['date']})")
-        return inventory
-
-def max_buy(username, ticker):
-    #Check current stock price
-    price = check_stock_price(ticker)
-    print(f"Current price of {ticker}: ${price:.2f}")
-
-    # Calculate max number of shares user can buy
-    balance = current_balance(username)
-    max_shares = int(balance / price)
-    print(f"Max shares you can buy: {max_shares}")
-    
-    return max_shares
-
-
-#LEFT OFF HERE
-###############################
-
-def buy(username):
-    user_db_path = os.path.join("users", f"{username}.db")
-    conn = sqlite3.connect(user_db_path)
-    c = conn.cursor()
-    # Prompt for stock ticker
-    ticker = input("Enter stock ticker: ").upper()
-
-
-    # Prompt user for amount of shares to buy
-    shares = int(input("How many shares do you want to buy? "))
-    if shares > max_shares:
-        print("Insufficient balance to purchase that many shares")
-        return
-
-    # Subtract cost of shares from user balance
-    cost = shares * price
-    c.execute("UPDATE inventory SET balance = balance - ?", (cost,))
-    conn.commit()
-
-    # Add shares to user's portfolio
-    purchase_date = datetime.now().strftime("%Y-%m-%d")
-    c.execute("SELECT * FROM portfolio WHERE ticker=?", (ticker,))
-    stock = c.fetchone()
-    if stock:
-        shares_owned = stock[2] + shares
-        c.execute("UPDATE portfolio SET shares=?, purchase_date=? WHERE ticker=?", (shares_owned, purchase_date, ticker))
-    else:
-        c.execute("INSERT INTO portfolio VALUES (?, ?, ?, ?)", (ticker, price, shares, purchase_date))
-    conn.commit()
-
-    print(f"Purchased {shares} shares of {ticker} for ${cost:.2f}")
-
-    conn.close()
-
-
 
 def sell(username):
-    conn = sqlite3.connect(f"database/{username}.db")
+    user_db_path = os.path.join("users", f"{username}.db")
+    conn = sqlite3.connect(user_db_path)
     c = conn.cursor()
     # get current stock inventory
     c.execute("SELECT * FROM stocks")
@@ -212,17 +112,18 @@ def sell(username):
     for row in stock_rows:
         if row[0] == ticker:
             if shares_to_sell <= row[1]:
-                stock_price = check_stock_price 
+                stock_price = check_stock_price(ticker)
                 sale_price = stock_price * shares_to_sell
-                new_balance = current_balance + sale_price
-                c.execute("UPDATE inventory SET money = ?", (new_balance,))
+                current_bal = current_balance(username)
+                new_balance = current_bal + sale_price
+                c.execute("UPDATE balance SET amount = ? WHERE 1", (new_balance,))
                 conn.commit()
                 new_shares = row[1] - shares_to_sell
                 if new_shares == 0:
-                    c.execute("DELETE FROM stocks WHERE ticker=?", (ticker,))
+                    c.execute("DELETE FROM stocks WHERE symbol=?", (ticker,))
                     conn.commit()
                 else:
-                    c.execute("UPDATE stocks SET shares = ? WHERE ticker = ?", (new_shares, ticker))
+                    c.execute("UPDATE stocks SET shares = ? WHERE symbol = ?", (new_shares, ticker))
                     conn.commit()
                 print(f"Sold {shares_to_sell} shares of {ticker} for {sale_price}.")
                 break
@@ -234,51 +135,262 @@ def sell(username):
     conn.close()
 
 
-def tutorial(user):
-    tutorial_text = [
-        "Module 1: Introduction to the game",
-        "Module 2: How to buy stocks",
-        "Module 3: How to sell stocks",
-        "Module 4: Understanding stock prices",
-        "Module 5: Common trading strategies",
-        "Module 6: Tips for success",
-        "Module 7: How to interpret financial reports",
-        "Module 8: Fundamental analysis",
-        "Module 9: Technical analysis",
-        "Module 10: Using options to trade stocks"
-    ]
-    
-    # Connect to the SQL database
-    conn = sqlite3.connect('database/user_inventories.db')
-    c = conn.cursor()
-    
-    # Get the last tutorial read by the user from the database
-    username = user['username']
-    c.execute("SELECT last_tutorial FROM users WHERE username=?", (username,))
-    last_tutorial = c.fetchone()[0]
+def check_stock_price(ticker):
+    stock_data = yf.Ticker(ticker).info
+    return stock_data['regularMarketPrice']
 
-    #Print the last tutorial read by the user
-    print(f"Last tutorial read: {tutorial_text[last_tutorial-1]}")
-    
-    # Print the tutorial text
-    for i, text in enumerate(tutorial_text):
-        print(f"{i+1}. {text}")
-    
-    # Ask the user which module they want to read
-    tutorial_num = int(input("Which tutorial module would you like to read? "))
-    
-    # Check that the tutorial number is valid
-    if tutorial_num < 1 or tutorial_num > len(tutorial_text):
-        print("Invalid tutorial number")
-        return
-    
-    # Print the selected tutorial module
-    print(f"\n{tutorial_text[tutorial_num-1]}:\n")
-    print("This is the tutorial content.")
-    
-    # Update the user's last tutorial read in the database
-    c.execute("UPDATE users SET last_tutorial=? WHERE username=?", (tutorial_num, username))
-    conn.commit()
-    
-    # Close the database connection
+def current_balance(username):
+    user_db_path = os.path.join("users", f"{username}.db")
+    conn = sqlite3.connect(user_db_path)
+    c = conn.cursor()
+    c.execute("SELECT * FROM balance")
+    balance = c.fetchone()[0]
     conn.close()
+    return balance
+
+def max_buy(username, ticker):
+    balance = current_balance(username)
+    stock_price = check_stock_price(ticker)
+    return int(balance / stock_price)
+
+def confirm_buy(username, ticker, shares):
+    stock_price = check_stock_price(ticker)
+    purchase_price = stock_price * shares
+    balance = current_balance(username)
+    if purchase_price > balance:
+        return False
+    else:
+        user_db_path = os.path.join("users", f"{username}.db")
+        conn = sqlite3.connect(user_db_path)
+        c = conn.cursor()
+        # check if stock already in inventory
+        c.execute("SELECT * FROM stocks WHERE symbol = ?", (ticker,))
+        stock_row = c.fetchone()
+        if stock_row is not None:
+            # update shares
+            new_shares = stock_row[1] + shares
+            c.execute("UPDATE stocks SET shares = ?, price = ?, date = ? WHERE symbol = ?", (new_shares, stock_price, datetime.now(), ticker))
+        else:
+            # insert new row
+            c.execute("INSERT INTO stocks VALUES (?, ?, ?, ?)", (ticker, shares, stock_price, datetime.now()))
+        # update balance
+        new_balance = balance - purchase_price
+        c.execute("UPDATE balance SET amount = ? WHERE 1", (new_balance,))
+        conn.commit()
+        conn.close()
+        return True
+
+
+def get_stock_data(ticker, start_date, end_date):
+    """
+    Returns a pandas dataframe of historical stock price data for a given ticker, 
+    starting from start_date and ending on end_date.
+    """
+    stock_data = yf.download(ticker, start=start_date, end=end_date)
+    return stock_data
+
+
+def get_stock_volume(ticker, date):
+    """
+    Returns the trading volume for a given stock ticker on a given date.
+    """
+    stock_data = yf.Ticker(ticker).history(start=date, end=date)
+    return stock_data["Volume"][0]
+
+
+def get_stock_high(ticker, date):
+    """
+    Returns the high price for a given stock ticker on a given date.
+    """
+    stock_data = yf.Ticker(ticker).history(start=date, end=date)
+    return stock_data["High"][0]
+
+
+def get_stock_low(ticker, date):
+    """
+    Returns the low price for a given stock ticker on a given date.
+    """
+    stock_data = yf.Ticker(ticker).history(start=date, end=date)
+    return stock_data["Low"][0]
+
+
+def get_stock_open(ticker, date):
+    """
+    Returns the opening price for a given stock ticker on a given date.
+    """
+    stock_data = yf.Ticker(ticker).history(start=date, end=date)
+    return stock_data["Open"][0]
+
+
+def get_stock_close(ticker, date):
+    """
+    Returns the closing price for a given stock ticker on a given date.
+    """
+    stock_data = yf.Ticker(ticker).history(start=date, end=date)
+    return stock_data["Close"][0]
+
+
+def simulate_day_trading(username):
+    print("Simulating trading day...\n")
+    user_db_path = os.path.join("users", f"{username}.db")
+    conn = sqlite3.connect(user_db_path)
+    c = conn.cursor()
+    c.execute("SELECT * FROM stocks")
+    stock_rows = c.fetchall()
+    for row in stock_rows:
+        ticker = row[0]
+        current_price = check_stock_price(ticker)
+        # generate random fluctuations in price
+        price_change = random.uniform(-0.05, 0.05)
+        new_price = current_price * (1 + price_change)
+        c.execute("UPDATE stocks SET price = ?, date = ? WHERE symbol = ?", (new_price, datetime.now(), ticker))
+        print(f"{ticker} price changed from {current_price} to {new_price}.")
+    conn.commit()
+
+    # generate random news
+    print("\nGenerating news...\n")
+    news_items = [
+        "The Federal Reserve announced a rate hike today, causing stocks to tumble.",
+        "Tech giant Apple unveiled a new line of products, boosting the company's stock.",
+        "Economic data showed strong job growth, leading to gains in the stock market.",
+        "Oil prices surged due to tensions in the Middle East, causing energy stocks to soar.",
+        "A major company announced disappointing earnings, causing its stock to plummet."
+    ]
+    news_item = random.choice(news_items)
+    print(news_item)
+
+    # generate random buy/sell orders
+    print("\nGenerating buy/sell orders...\n")
+    for _ in range(5):
+        action = random.choice(["buy", "sell"])
+        if action == "buy":
+            ticker = random.choice(["AAPL", "GOOG", "TSLA", "AMZN"])
+            max_shares = max_buy(username, ticker)
+            if max_shares == 0:
+                continue
+            shares = random.randint(1, max_shares)
+            if confirm_buy(username, ticker, shares):
+                print(f"Bought {shares} shares of {ticker}.")
+        else:
+            c.execute("SELECT symbol, shares FROM stocks")
+            stock_rows = c.fetchall()
+            if not stock_rows:
+                continue
+            row = random.choice(stock_rows)
+            ticker = row[0]
+            shares_to_sell = random.randint(1, row[1])
+            sell(username, ticker, shares_to_sell)
+
+    conn.commit()
+    conn.close()
+
+
+
+
+def create_portfolio_table(cursor):
+    cursor.execute("""
+        CREATE TABLE portfolio (
+            id INTEGER PRIMARY KEY,
+            symbol TEXT,
+            shares INTEGER,
+            purchase_price REAL,
+            purchase_date TEXT
+        )
+    """)
+
+
+def add_to_portfolio(username, symbol, shares, price):
+    user_db_path = os.path.join("users", f"{username}.db")
+    conn = sqlite3.connect(user_db_path)
+    cursor = conn.cursor()
+
+    # Check if the "portfolio" table exists, and create it if it does not
+    cursor.execute("""
+        SELECT name FROM sqlite_master WHERE type='table' AND name='portfolio'
+    """)
+    if cursor.fetchone() is None:
+        create_portfolio_table(cursor)
+        conn.commit()
+
+    # Check if the stock is already in the user's portfolio
+    cursor.execute("""
+        SELECT shares, purchase_price FROM portfolio WHERE symbol=?
+    """, (symbol,))
+    result = cursor.fetchone()
+    if result is not None:
+        # If the stock is already in the user's portfolio, update the shares and purchase price
+        new_shares = result[0] + shares
+        new_price = (result[1] + price) / 2
+        cursor.execute("""
+            UPDATE portfolio SET shares=?, purchase_price=? WHERE symbol=?
+        """, (new_shares, new_price, symbol))
+    else:
+        # If the stock is not already in the user's portfolio, add it
+        cursor.execute("""
+            INSERT INTO portfolio (symbol, shares, purchase_price, purchase_date) VALUES (?, ?, ?, ?)
+        """, (symbol, shares, price, datetime.now().strftime("%Y-%m-%d")))
+    conn.commit()
+    conn.close()
+
+
+def sell_from_portfolio(username, symbol, shares_to_sell):
+    user_db_path = os.path.join("users", f"{username}.db")
+    conn = sqlite3.connect(user_db_path)
+    cursor = conn.cursor()
+
+    # Get the user's balance and check if they have enough shares of the stock to sell
+    cursor.execute("""
+        SELECT amount FROM balance
+    """)
+    balance = cursor.fetchone()[0]
+    cursor.execute("""
+        SELECT shares, purchase_price FROM portfolio WHERE symbol=?
+    """, (symbol,))
+    result = cursor.fetchone()
+    if result is None:
+        print("You do not own any shares of that stock.")
+    elif shares_to_sell > result[0]:
+        print("You do not have enough shares of that stock to sell.")
+    else:
+        # Calculate the sale price and update the user's balance
+        sale_price = shares_to_sell * check_stock_price(symbol)
+        new_balance = balance + sale_price
+        cursor.execute("""
+            UPDATE balance SET amount=?
+        """, (new_balance,))
+
+        # Calculate the new number of shares and update the portfolio
+        new_shares = result[0] - shares_to_sell
+        if new_shares == 0:
+            cursor.execute("""
+                DELETE FROM portfolio WHERE symbol=?
+            """, (symbol,))
+        else:
+            cursor.execute("""
+                UPDATE portfolio SET shares=? WHERE symbol=?
+            """, (new_shares, symbol))
+
+        # Commit the changes to the database and print a success message
+        conn.commit()
+        print(f"Sold {shares_to_sell} shares of {symbol} for {sale_price}.")
+    conn.close()
+
+def check_inventory(username):
+    user_db_path = os.path.join("users", f"{username}.db")
+    conn = sqlite3.connect(user_db_path)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT amount FROM balance")
+    balance = cursor.fetchone()[0]
+
+    cursor.execute("SELECT symbol, shares, price, date FROM stocks")
+    stocks = cursor.fetchall()
+
+    total_value = balance
+    for stock in stocks:
+        symbol, shares, price, date = stock
+        total_value += shares * price
+
+    conn.close()
+
+    return balance, stocks, total_value

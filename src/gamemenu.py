@@ -1,6 +1,8 @@
 import pygame
 from stonker import check_inventory
-
+from buymenu import buy_menu
+from sellmenu import sell_menu
+from tutorialsmenu import tutorials_menu
 
 def game_menu(username):
     pygame.init()
@@ -25,8 +27,9 @@ def game_menu(username):
         text = font.render("Stocks:", True, (0, 0, 0))
         game_display.blit(text, (50, 100))
         y = 130
-        for stock, quantity in stocks.items():
-            text = font.render(f"{stock}: {quantity}", True, (0, 0, 0))
+        for stock in stocks:
+            symbol, quantity, price, date = stock
+            text = font.render(f"{symbol}: {quantity}", True, (0, 0, 0))
             game_display.blit(text, (50, y))
             y += 30
 
@@ -39,18 +42,18 @@ def game_menu(username):
         game_display.blit(text, (win_width // 2 - 100, 50))
 
         button_font = pygame.font.SysFont(None, 30)
-        button = pygame.Rect(win_width // 2 - 100, 150, 200, 50)
-        pygame.draw.rect(game_display, (0, 128, 0), button)
+        buy_button = pygame.Rect(win_width // 2 - 100, 150, 200, 50)
+        pygame.draw.rect(game_display, (0, 128, 0), buy_button)
         text = button_font.render("Buy Stocks", True, (255, 255, 255))
         game_display.blit(text, (win_width // 2 - 75, 160))
 
-        button = pygame.Rect(win_width // 2 - 100, 220, 200, 50)
-        pygame.draw.rect(game_display, (0, 128, 0), button)
+        sell_button = pygame.Rect(win_width // 2 - 100, 220, 200, 50)
+        pygame.draw.rect(game_display, (0, 128, 0), sell_button)
         text = button_font.render("Sell Stocks", True, (255, 255, 255))
         game_display.blit(text, (win_width // 2 - 75, 230))
 
-        button = pygame.Rect(win_width // 2 - 100, 290, 200, 50)
-        pygame.draw.rect(game_display, (0, 128, 0), button)
+        tutorial_button = pygame.Rect(win_width // 2 - 100, 290, 200, 50)
+        pygame.draw.rect(game_display, (0, 128, 0), tutorial_button)
         text = button_font.render("Tutorials", True, (255, 255, 255))
         game_display.blit(text, (win_width // 2 - 75, 300))
 
@@ -62,16 +65,15 @@ def game_menu(username):
                 quit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = event.pos
-                if button.collidepoint(mouse_pos):
+                if buy_button.collidepoint(mouse_pos):
                     print("Buy Stocks button clicked")
-                    # Call function to buy stocks
-                button = pygame.Rect(win_width // 2 - 100, 220, 200, 50)
-                if button.collidepoint(mouse_pos):
+                    buy_menu(username)
+                if sell_button.collidepoint(mouse_pos):
                     print("Sell Stocks button clicked")
-                    # Call function to sell stocks
-                button = pygame.Rect(win_width // 2 - 100, 290, 200, 50)
-                if button.collidepoint(mouse_pos):
+                    sell_menu(username)
+                if tutorial_button.collidepoint(mouse_pos):
                     print("Tutorials button clicked")
-                    # Call function to display tutorials
+                    tutorials_menu()
+
         # update the display
         pygame.display.update()
